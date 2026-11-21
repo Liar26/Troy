@@ -1,0 +1,13 @@
+{
+  "name": "troy",
+  "version": "0.1.0",
+  "description": "TROY - a calm gallery of public-domain paintings (Met Open Access)",
+  "private": true,
+  "type": "commonjs",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "import": "node scripts/import.js",
+    "start": "node server.js",
+    "mock": "node test/mock-met.js"
+  }
+}

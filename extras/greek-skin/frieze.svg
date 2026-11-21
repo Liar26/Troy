@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 56" width="1000" height="56">
+  <!-- TROY frieze: tiny black-figure style scenes. Used as a mask (shape only), coloured gold by greek.css.
+       Ground line is y=50. Edit the scenes at the bottom; the figures are defined once in <defs>. -->
+  <defs>
+    <!-- round shield: rim, gap ring, face, boss -->
+    <path id="disc" fill-rule="evenodd" d="M-7.5 0a7.5 7.5 0 1 0 15 0a7.5 7.5 0 1 0-15 0ZM-6.1 0a6.1 6.1 0 1 0 12.2 0a6.1 6.1 0 1 0-12.2 0ZM-5.3 0a5.3 5.3 0 1 0 10.6 0a5.3 5.3 0 1 0-10.6 0ZM-1.3 0a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0Z"/>
+
+    <!-- chariot wheel -->
+    <g id="wheel">
+      <path fill-rule="evenodd" d="M-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0ZM-6.5 0a6.5 6.5 0 1 0 13 0a6.5 6.5 0 1 0-13 0Z"/>
+      <path fill="none" stroke="#000" stroke-width=".9" d="M-6.5 0H6.5M0-6.5V6.5M-4.6-4.6L4.6 4.6M4.6-4.6L-4.6 4.6"/>
+      <circle r="1.7"/>
+    </g>
+
+    <!-- helmeted head with crest -->
+    <g id="head">
+      <path d="M-4.3 16.5A4.3 4.3 0 0 1 4.3 16.5Z"/>
+      <path d="M-3.6 12.8C-6 7.5-10.5 8-11.5 12.6C-8.5 11-6.5 12.4-4.4 14.4Z"/>
+      <circle cx=".6" cy="17.4" r="2.7"/>
+    </g>
+    <g id="top">
+      <use href="#head"/>
+      <path d="M-3.9 20L3.9 20L4.6 32L-4.6 32Z"/>
+      <path d="M-4.8 32L4.8 32L6.4 39L-6.4 39Z"/>
+    </g>
+
+    <!-- hoplite standing / marching, spear up -->
+    <g id="hopA">
+      <path d="M9.2 6V50" fill="none" stroke="#000" stroke-width="1.1"/>
+      <path d="M9.2 1L10.9 7L9.2 6L7.5 7Z"/>
+      <use href="#top"/>
+      <path d="M-2.3 38L-3.4 50M2.3 38L3.8 50M3 22L9 27" fill="none" stroke="#000" stroke-width="2.7" stroke-linecap="round"/>
+      <use href="#disc" x="5" y="29"/>
+    </g>
+
+    <!-- hoplite lunging, spear levelled -->
+    <g id="hopB">
+      <path d="M-6 22L31 28.4" fill="none" stroke="#000" stroke-width="1.1"/>
+      <path d="M30.2 30.1L37.4 29.6L30.8 26.5Z"/>
+      <g transform="rotate(14 0 39)"><use href="#top"/></g>
+      <path d="M2 39L9.5 44L10.5 50M-2 39L-8 44.5L-11.5 50M4 25L9 28.5" fill="none" stroke="#000" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#disc" x="9" y="30"/>
+    </g>
+
+    <g id="fallen">
+      <path d="M-9 48.5L8 49.5M8 49L12.5 43.5L15.5 48.5M-6 47.5L-3.5 41" fill="none" stroke="#000" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="-11.8" cy="47.2" r="2.9"/>
+      <path d="M-9 49.5H5" stroke="#000" stroke-width="4.4" stroke-linecap="round"/>
+    </g>
+
+    <!-- galloping horse, facing right -->
+    <g id="horse">
+      <ellipse cx="0" cy="29" rx="13.5" ry="6.4"/>
+      <path d="M8 26L15.5 11.5L20.5 13.5L14 33Z"/>
+      <path d="M15.5 11.5L26 15.5L25 19.2L18.8 17.5Z"/>
+      <path d="M16.2 11.5L17 7.2L19.4 12Z"/>
+      <path fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="round" d="M14.8 12.6L11.2 13.8L13.8 15.4L10.4 17.2L13.3 18.8L10.4 21.2L13.6 22.2"/>
+      <path fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" d="M-13 26C-19 22-24 25-26 33"/>
+      <path fill="none" stroke="#000" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M9 33L17 37.5L24.5 36.5M7.5 34.5L14.5 41L20.5 42M-8.5 33.5L-16.5 37.5L-24 38.5M-7 35L-13.5 41.5L-19.5 45"/>
+    </g>
+
+    <!-- two-horse chariot running right -->
+    <g id="chariot">
+      <path d="M-52 21C-59 22-62 28-61 33C-56 28-52 28-47 29Z"/>
+      <use href="#horse" x="3.5" y="-3"/>
+      <use href="#horse"/>
+      <path d="M-27 33L-5 31" fill="none" stroke="#000" stroke-width="1.8"/>
+      <use href="#head" transform="translate(-39.5 -3)"/>
+      <path d="M-43 18L-36 18L-35 34L-44 34Z"/>
+      <path d="M-37 21.5L-27.5 25" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+      <path d="M-29 25C-8 22 6 19 21 18.5" fill="none" stroke="#000" stroke-width=".8"/>
+      <path d="M-47 26H-31Q-26.5 26-26.5 31V40H-47Z"/>
+      <use href="#wheel" x="-37" y="42"/>
+      <path d="M-66 36H-78M-64 40.5H-73M-68 31.5H-76" fill="none" stroke="#000" stroke-width="1" stroke-linecap="round"/>
+    </g>
+
+    <!-- the Trojan horse on wheels -->
+    <g id="trojan">
+      <path d="M-22 41H22V44H-22Z"/>
+      <use href="#wheel" transform="translate(-15 46.6) scale(.42)"/>
+      <use href="#wheel" transform="translate(15 46.6) scale(.42)"/>
+      <path d="M-17.5 29H-13.5V41H-17.5ZM-9 29H-5V41H-9ZM5 29H9V41H5ZM13.5 29H17.5V41H13.5Z"/>
+      <path fill-rule="evenodd" d="M-19 22Q-19 30-12 30H12Q19 30 19 22Q19 15 10 15H-10Q-19 15-19 22ZM-3.2 19.5H3.2V27H-3.2Z"/>
+      <path d="M11 18L17.5 5.5L23.5 7.5L19.5 24Z"/>
+      <path d="M17.5 5.5L30 10L29 14.2L22 12.8Z"/>
+      <path d="M18 5.6L19.2 1.2L21.6 6.3Z"/>
+      <path fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="round" d="M17 6.5L14 8.4L16.2 9.6L13.2 11.8L15.5 13L12.8 15.4L15.4 16.4"/>
+      <path fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" d="M-19 20C-23 22-25 27-24.5 31"/>
+    </g>
+
+    <!-- king on his throne, arm raised, giving orders -->
+    <g id="king">
+      <path d="M-12.5 10H-8V36H-12.5Z"/>
+      <path d="M-13.5 7.5H-6.5V10.5H-13.5Z"/>
+      <path d="M-12 33H10V36H-12Z"/>
+      <path d="M-11 36H-8V50H-11ZM6 36H9V50H6ZM-8 43H6V44.6H-8Z"/>
+      <path d="M10.5 46H18V50H10.5Z"/>
+      <path d="M-7 19.5H1.5L3.5 33H-9.5Z"/>
+      <circle cx="-3" cy="15.3" r="3.1"/>
+      <path d="M-6.4 12.6L-5.8 8.2L-4.2 10.8L-3 7.2L-1.8 10.8L-.2 8.2L.4 12.6Z"/>
+      <path fill="none" stroke="#000" stroke-width="3.6" stroke-linecap="round" d="M-5 32.4H8.2"/>
+      <path fill="none" stroke="#000" stroke-width="2.8" stroke-linecap="round" d="M8.2 32.4L9.2 46"/>
+      <path fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M0 21.5L8 17.2L13.8 15.2"/>
+      <circle cx="14.8" cy="14.8" r="1.4"/>
+    </g>
+
+    <!-- small ornament between scenes -->
+    <g id="sep"><path d="M0 22L3.4 26L0 30L-3.4 26Z"/><circle cy="15" r="1.3"/><circle cy="37" r="1.3"/></g>
+  </defs>
+
+  <g fill="#000" stroke="none">
+    <use href="#sep" x="22"/>
+    <!-- 1. marching phalanx -->
+    <use href="#hopA" x="44"/><use href="#hopA" x="61"/><use href="#hopA" x="78"/>
+    <use href="#sep" x="106"/>
+    <!-- 2. chariot -->
+    <use href="#chariot" x="192"/>
+    <use href="#sep" x="234"/>
+    <!-- 3. duel with a fallen warrior -->
+    <use href="#hopB" x="262"/>
+    <use href="#hopB" transform="translate(322 0) scale(-1 1)"/>
+    <use href="#fallen" x="294"/>
+    <use href="#sep" x="352"/>
+    <!-- 4. king on throne giving orders to his soldiers -->
+    <use href="#king" x="386"/>
+    <use href="#hopA" transform="translate(420 0) scale(-1 1)"/>
+    <use href="#hopA" transform="translate(438 0) scale(-1 1)"/>
+    <use href="#sep" x="466"/>
+    <!-- 5. Trojan horse hauled by soldiers -->
+    <use href="#hopA" transform="translate(478 10) scale(.8)"/>
+    <use href="#hopA" transform="translate(491 10) scale(.8)"/>
+    <path d="M499 40L520 43" fill="none" stroke="#000" stroke-width=".9"/>
+    <use href="#trojan" x="545"/>
+    <use href="#sep" x="590"/>
+    <!-- 6. chariot running left -->
+    <use href="#chariot" transform="translate(696 0) scale(-1 1)"/>
+    <use href="#sep" x="780"/>
+    <!-- 7. duel -->
+    <use href="#hopB" x="806"/>
+    <use href="#hopB" transform="translate(866 0) scale(-1 1)"/>
+    <use href="#fallen" x="838"/>
+    <use href="#sep" x="898"/>
+    <!-- 8. phalanx marching left -->
+    <use href="#hopA" transform="translate(932 0) scale(-1 1)"/>
+    <use href="#hopA" transform="translate(949 0) scale(-1 1)"/>
+    <use href="#hopA" transform="translate(966 0) scale(-1 1)"/>
+    <use href="#sep" x="990"/>
+  </g>
+</svg>
