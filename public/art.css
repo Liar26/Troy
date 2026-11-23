@@ -201,3 +201,26 @@ label.btn { cursor: pointer; }
   body.hdr-searching .hdr-search { flex: 1 1 240px; max-width: 340px; }
   body.hdr-searching .art-btn .nm { display: none; }
 }
+
+/* share sheet + feedback */
+.linklike { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
+.linklike:hover { color: var(--accent); }
+.share-back { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; padding: 16px; background: rgba(0,0,0,.55); }
+.share-sheet { position: relative; width: min(440px, 100%); padding: 22px; border-radius: 14px; background: var(--bg, #111); color: var(--text, inherit); border: 1px solid var(--line, rgba(128,128,128,.3)); box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+.share-sheet h3 { margin: 0 0 14px; font-weight: 500; }
+.share-x { position: absolute; top: 10px; right: 10px; }
+.share-copy { display: flex; gap: 8px; margin-bottom: 14px; }
+.share-copy input { flex: 1; min-width: 0; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--line, rgba(128,128,128,.4)); background: transparent; color: inherit; font: inherit; font-size: 14px; }
+.share-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.fb { display: grid; gap: 16px; max-width: 560px; }
+.fb label { display: grid; gap: 6px; font-size: 14px; color: var(--muted); }
+.fb input, .fb select, .fb textarea { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line, rgba(128,128,128,.4)); background: transparent; color: var(--text, inherit); font: inherit; }
+.fb textarea { resize: vertical; }
+.fb-row { display: flex; align-items: center; gap: 4px; }
+.fb-row .muted { margin-right: 8px; }
+.star { background: none; border: 0; font-size: 26px; line-height: 1; color: var(--muted); cursor: pointer; padding: 2px; }
+.star.on, .star:hover { color: var(--accent); }
+.hp { position: absolute !important; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.fb-msg { min-height: 1.4em; margin: 0; font-size: 14px; }
+.fb-thanks { font-size: 18px; }
+@media print { .share-back { display: none; } }

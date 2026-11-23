@@ -76,6 +76,94 @@
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   };
 
+
+  /* ---------- share (site or painting) ---------- */
+  let shareEl = null;
+  function closeShare() { shareEl?.remove(); shareEl = null; }
+  function openShare(kind) {
+    closeShare();
+    const cur = kind === 'painting' && state.cur;
+    const url = cur ? `${location.origin}/painting/${cur.id}` : `${location.origin}/`;
+    const title = cur ? cur.title : 'TROY';
+    const text = cur ? `${cur.title}${cur.artist ? ' · ' + cur.artist : ''} on TROY` : 'TROY: a calm gallery of public-domain paintings from museums around the world';
+    const mobile = matchMedia('(pointer:coarse)').matches;
+    if (mobile && navigator.share) { navigator.share({ title, text, url }).catch(() => {}); return; }
+    const u = encodeURIComponent(url), t = encodeURIComponent(text);
+    const links = [
+      ['WhatsApp', `https://wa.me/?text=${t}%20${u}`],
+      ['Telegram', `https://t.me/share/url?url=${u}&text=${t}`],
+      ['X', `https://twitter.com/intent/tweet?text=${t}&url=${u}`],
+      ['Facebook', `https://www.facebook.com/sharer/sharer.php?u=${u}`],
+      ['Reddit', `https://www.reddit.com/submit?url=${u}&title=${t}`],
+      ['Pinterest', `https://pinterest.com/pin/create/button/?url=${u}&description=${t}${cur?.thumb ? '&media=' + encodeURIComponent(cur.thumb) : ''}`],
+      ['Email', `mailto:?subject=${encodeURIComponent(title)}&body=${t}%0A${u}`],
+    ];
+    shareEl = document.createElement('div');
+    shareEl.className = 'share-back';
+    shareEl.innerHTML = `<div class="share-sheet" role="dialog" aria-modal="true" aria-label="Share">
+      <button class="icon-btn share-x" data-share-close aria-label="Close">✕</button>
+      <h3>${cur ? 'Share this painting' : 'Share TROY'}</h3>
+      <div class="share-copy"><input readonly value="${esc(url)}" aria-label="Link"><button class="btn btn-primary" data-share-copy>Copy</button></div>
+      <div class="share-links">${links.map(([n, h]) => `<a class="btn" href="${esc(h)}" target="_blank" rel="noopener noreferrer">${n}</a>`).join('')}${navigator.share ? '<button class="btn" data-share-native>More…</button>' : ''}</div>
+    </div>`;
+    document.body.appendChild(shareEl);
+    const input = shareEl.querySelector('input'); input.select();
+    shareEl.addEventListener('click', (e) => {
+      if (e.target === shareEl || e.target.closest('[data-share-close]')) closeShare();
+      else if (e.target.closest('[data-share-copy]')) { const b = e.target.closest('button'); copyText(url).then((ok) => flash(b, ok ? 'Copied' : 'Press Ctrl+C', 'Copy')); }
+      else if (e.target.closest('[data-share-native]')) navigator.share({ title, text, url }).catch(() => {});
+    });
+    shareEl.querySelector('[data-share-copy]').focus();
+  }
+
+  /* ---------- feedback page ---------- */
+  function feedbackView() {
+    return `
+      <div class="container page-head"><h1>Feedback</h1><p>Tell us what to improve, what is broken, or what you enjoyed. It helps more than you think.</p></div>
+      <div class="container prose">
+        <form id="fb" class="fb" novalidate>
+          <div class="fb-row" role="radiogroup" aria-label="Rating">
+            <span class="muted">How is TROY?</span>
+            ${[1, 2, 3, 4, 5].map((n) => `<button type="button" class="star" data-star="${n}" aria-label="${n} of 5">★</button>`).join('')}
+          </div>
+          <label>What kind of message?
+            <select name="type"><option value="idea">An idea</option><option value="problem">Something is broken</option><option value="praise">Praise</option><option value="other">Other</option></select></label>
+          <label>Your message
+            <textarea name="message" rows="6" maxlength="2000" required placeholder="Write here…"></textarea></label>
+          <label>Email (optional, only if you want a reply)
+            <input name="email" type="email" maxlength="120" autocomplete="email"></label>
+          <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <p class="muted fb-note">We save only what you type here, plus the page you were on. No tracking. <a href="/privacy" data-link>Privacy</a></p>
+          <button class="btn btn-primary" type="submit" id="fb-send">Send feedback</button>
+          <p id="fb-msg" role="status" class="fb-msg"></p>
+        </form>
+      </div>`;
+  }
+  function wireFeedback() {
+    const f = $('#fb'); if (!f) return;
+    let rating = 0;
+    const from = sessionStorage.getItem('troy.fbfrom') || '';
+    f.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-star]'); if (!b) return;
+      rating = +b.dataset.star; f.querySelectorAll('.star').forEach((s) => s.classList.toggle('on', +s.dataset.star <= rating));
+    });
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = $('#fb-msg'), btn = $('#fb-send'), d = Object.fromEntries(new FormData(f));
+      if ((d.message || '').trim().length < 3) { msg.textContent = 'Please write a short message first.'; return; }
+      btn.disabled = true; msg.textContent = 'Sending…';
+      try {
+        const r = await fetch('/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...d, rating, page: from }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || 'failed');
+        f.innerHTML = '<p class="fb-thanks">Thank you. Your feedback was sent.</p><p><a class="btn" href="/" data-link>Back to the gallery</a></p>';
+      } catch (err) {
+        btn.disabled = false;
+        msg.innerHTML = `${esc(err.message === 'failed' || err.message === 'Failed to fetch' ? 'Could not send right now.' : err.message)}${state.email ? ` <a href="mailto:${esc(state.email)}?subject=TROY%20feedback&body=${encodeURIComponent(d.message)}">Send by email instead</a>` : ''}`;
+      }
+    });
+  }
+
   /* ---------- collections (Saved + named lists) ---------- */
   const saveCols = () => store.set('troy.cols', state.cols);
   const colById = (id) => state.cols.find((c) => c.id === id);
@@ -279,7 +367,7 @@
       <div class="container page-head"><h1>Privacy &amp; safety</h1><p>The short version: no accounts, no ads, no tracking, no cookies.</p></div>
       <div class="container prose">
         <h2>What TROY collects</h2>
-        <p>Nothing about you is sent to us or stored on our server. There are no accounts, no sign-up, no analytics, no advertising and no cookies.</p>
+        <p>Nothing about you is sent to us or stored on our server, except a message you choose to send through the <a href="/feedback" data-link>Feedback</a> form (your message, optional email, rating and the page you were on, used only to improve TROY or reply to you). There are no accounts, no sign-up, no analytics, no advertising and no cookies.</p>
         <h2>What stays in your browser</h2>
         <p>To remember your choices, TROY saves a few small items in your own browser (local storage): your saved paintings and collections, light or dark theme, your background choice, your daily-visit streak, and the colours it has read from paintings. They never leave your device unless you export them or share a link yourself. You can erase everything by clearing this site’s data in your browser settings.</p>
         <h2>Third parties, honestly</h2>
@@ -322,6 +410,7 @@
         ${state.email
           ? `<p><a class="btn btn-primary" href="${esc(mail('TROY: question', ''))}">Email ${esc(state.email)}</a></p>`
           : '<p class="muted">The contact address has not been set up yet. (Site owner: set <code>TROY_EMAIL</code> and restart the server.)</p>'}
+        <p><a class="btn" href="/feedback" data-link>Send feedback</a></p>
         <h2>Report a painting</h2>
         <p>Open the painting, copy its link, and send it with a short note: wrong information, broken image, or a rights concern. Every painting window also has a “Report a problem” link that fills this in for you.</p>
         <h2>Common questions</h2>
@@ -567,9 +656,11 @@
     '/privacy': { title: 'Privacy & safety · TROY', render: privacyView, after() {} },
     '/terms': { title: 'Terms · TROY', render: termsView, after() {} },
     '/contact': { title: 'Contact · TROY', render: contactView, after() {} },
+    '/feedback': { title: 'Feedback · TROY', render: feedbackView, after: wireFeedback },
   };
 
   function renderPage(path) {
+    if (path === '/feedback' && state.bgPath && state.bgPath !== '/feedback') { try { sessionStorage.setItem('troy.fbfrom', state.bgPath); } catch { /* ignore */ } }
     state.cleanup?.(); state.cleanup = null; state.refresh = null;
     const am = /^\/artist\/([a-z0-9-]+)$/.exec(path);
     const page = am ? { title: 'Artist · TROY', render: () => artistView(am[1]), after: () => watchImages(view) } : PAGES[path] || { title: 'Not found · TROY', render: () => '<div class="container empty">Page not found. <a href="/" data-link>Go home</a></div>', after() {} };
@@ -796,6 +887,7 @@
         ${saveBtn(p.id)}
         <button class="btn" data-zoom>Zoom</button>
         <span class="pop-wrap"><button class="btn" id="add-col" aria-expanded="false">Add to collection</button><div class="col-pop" id="col-pop" hidden></div></span>
+        <button class="btn" data-share="painting">Share</button>
         <button class="btn" id="copy-link">Copy link</button>
         ${p.objectURL ? `<a class="btn" href="${esc(p.objectURL)}" target="_blank" rel="noopener">View at the museum ↗</a>` : ''}
         ${p.image ? `<button class="btn" id="dl">Download</button><a class="btn" href="${esc(p.image)}" target="_blank" rel="noopener">Original file ↗</a>` : ''}
@@ -834,6 +926,7 @@
     const link = e.target.closest('a[data-link]');
     if (link && plainClick(e)) { e.preventDefault(); navigate(link.getAttribute('href')); return; }
     const t = e.target;
+    const shBtn = t.closest('[data-share]'); if (shBtn) { openShare(shBtn.dataset.share); return; }
     const zoomBtn = t.closest('[data-zoom]'); if (zoomBtn && state.cur) { openZoom(state.cur); return; }
     const stepBtn = t.closest('[data-step]'); if (stepBtn) { step(+stepBtn.dataset.step); return; }
     if (t.closest('[data-slideshow]')) { startSlideshow(state.ctx); return; }
@@ -875,6 +968,7 @@
   });
 
   document.addEventListener('keydown', (e) => {
+    if (shareEl) { if (e.key === 'Escape') { closeShare(); e.stopPropagation(); } return; }
     if (state.zoom) {
       if (e.key === 'Escape') { closeZoom(); e.stopPropagation(); } else if (e.key === '+' || e.key === '=') state.zoom.zoomBy(1.4); else if (e.key === '-') state.zoom.zoomBy(1 / 1.4);
       return;

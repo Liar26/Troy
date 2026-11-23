@@ -53,6 +53,7 @@ function cmaItem(i) {
 http.createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
   let m;
+  if (u.pathname === '/hook') { let b = ''; req.on('data', (c) => (b += c)); req.on('end', () => { console.log('HOOK', b); res.writeHead(200); res.end('ok'); }); return; }
   if (u.pathname === '/aic/api/v1/artworks/search') {
     const page = +u.searchParams.get('page') || 1, lim = +u.searchParams.get('limit') || 100, TOTAL = 60;
     const all = Array.from({ length: TOTAL }, (_, i) => aicItem(i)).filter((x) => x.is_public_domain);

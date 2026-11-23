@@ -92,3 +92,8 @@ Why they were missing: the import took the first paintings each museum listed, n
 
 ## Step 20: Customer care, privacy, safety
 Added Privacy & safety, Terms and Contact pages (footer links), a Report a problem link in every painting window (needs TROY_EMAIL), a friendly not-found page, security headers with a Content-Security-Policy (no outside scripts, so no ads), a request-rate limit, and data/hidden.json to take a painting down instantly. Files: server.js, public/app.js, public/index.html, README.md.
+
+## Step 21: Share buttons + site feedback
+- Share: header icon, footer "Share TROY", and a Share button on every painting. Phones open the native share menu; desktop gets a sheet (copy link, WhatsApp, Telegram, X, Facebook, Reddit, Pinterest, Email).
+- Link previews: every page now has Open Graph/Twitter tags (paintings use their own image) so shared links look good.
+- Feedback: /feedback page (stars, type, message, optional email, hidden spam trap). POST /api/feedback is rate-limited (5/min), saved to data/feedback.jsonl and forwarded to TROY_WEB3FORMS_KEY (email) and/or TROY_FEEDBACK_WEBHOOK (Discord/Slack). Privacy page updated.

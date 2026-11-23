@@ -1,0 +1,4 @@
+node_modules/
+*.tmp
+.env
+PROMPT_FOR_CLAUDE.md

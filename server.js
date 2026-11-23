@@ -14,7 +14,7 @@ const MIME = {
   '.js': 'text/javascript; charset=utf-8', '.json': 'application/json',
   '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.png': 'image/png',
 };
-const PAGES = /^\/(explore|today|about|saves|artists|timeline|c|privacy|terms|contact)?\/?$|^\/artist\/[a-z0-9-]+\/?$|^\/painting\/\d+\/?$/;
+const PAGES = /^\/(explore|today|about|saves|artists|timeline|c|privacy|terms|contact|feedback)?\/?$|^\/artist\/[a-z0-9-]+\/?$|^\/painting\/\d+\/?$/;
 
 const crypto = require('crypto');
 const SUPPORT_EMAIL = process.env.TROY_EMAIL || '';   // shown on the Contact page; set it before you go public
@@ -86,27 +86,65 @@ async function api(req, res, url) {
   return json(res, 404, { error: 'Painting not found' });
 }
 
+function baseUrl(req) { return (process.env.TROY_URL || `http://${req.headers.host}`).replace(/\/+$/, ''); }
 function servePage(req, res, url, code = 200) {
   let html = fs.readFileSync(path.join(PUBLIC, 'index.html'), 'utf8');
+  const base = baseUrl(req);
   const m = /^\/painting\/(\d+)/.exec(url.pathname);
-  const p = m && db.getById(m[1]);
-  if (p) { // Open Graph tags so shared links get a preview
-    const desc = [p.artist, p.date].filter(Boolean).join(', ');
-    const tags = `<title>${esc(p.title)} · TROY</title>
-<meta property="og:title" content="${esc(p.title)}">
+  const p = m && !hiddenSet().has(Number(m[1])) && db.getById(m[1]);
+  // Titles/descriptions/images for link previews (WhatsApp, X, Facebook ...) so shared links look good.
+  const title = p ? `${p.title} · TROY` : 'TROY';
+  const desc = p ? [p.artist, p.date, p.museum].filter(Boolean).join(', ') : 'A calm gallery of public-domain paintings from museums around the world, shown in their original proportions.';
+  const image = p ? p.thumb : `${base}/logo.png`;
+  const tags = `<title>${esc(title)}</title>
+<meta property="og:site_name" content="TROY">
+<meta property="og:type" content="website">
+<meta property="og:title" content="${esc(p ? p.title : 'TROY: paintings from around the world')}">
 <meta property="og:description" content="${esc(desc)}">
-<meta property="og:image" content="${esc(p.thumb)}">`;
-    html = html.replace('<title>TROY</title>', tags);
-  }
+<meta property="og:image" content="${esc(image)}">
+<meta property="og:url" content="${esc(base + url.pathname)}">
+<meta name="twitter:card" content="${p ? 'summary_large_image' : 'summary'}">`;
+  html = html.replace('<title>TROY</title>', tags);
   res.writeHead(code, { 'Content-Type': MIME['.html'], 'Content-Security-Policy': csp() });
   res.end(html);
+}
+
+// ---- site feedback ----
+// Saved to data/feedback.jsonl and forwarded (if you set them) to an email service or chat webhook:
+//   TROY_WEB3FORMS_KEY = free key from web3forms.com (emails each message to you)
+//   TROY_FEEDBACK_WEBHOOK = a Discord or Slack incoming-webhook address
+// Note: free hosting can wipe local files on restart, so set one of the two above.
+const FEEDBACK_FILE = path.join(path.dirname(db.FILE), 'feedback.jsonl');
+function readBody(req, max = 10000) {
+  return new Promise((resolve, reject) => {
+    let n = 0; const chunks = [];
+    req.on('data', (c) => { n += c.length; if (n > max) { reject(new Error('too large')); req.destroy(); } else chunks.push(c); });
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    req.on('error', reject);
+  });
+}
+const clip = (v, n) => String(v ?? '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').trim().slice(0, n);
+async function feedback(req, res) {
+  if (limited(req, 'feedback', 5)) return json(res, 429, { error: 'Please wait a minute before sending more.' });
+  let d; try { d = JSON.parse(await readBody(req)); } catch { return json(res, 400, { error: 'Bad request' }); }
+  if (d.website) return json(res, 200, { ok: true });                        // hidden spam trap: bots fill it in, people never see it
+  const f = { at: new Date().toISOString(), type: clip(d.type, 20) || 'idea', rating: Math.min(5, Math.max(0, Number(d.rating) || 0)), message: clip(d.message, 2000), email: clip(d.email, 120), page: clip(d.page, 200) };
+  if (f.message.length < 3) return json(res, 400, { error: 'Please write a short message.' });
+  try { fs.mkdirSync(path.dirname(FEEDBACK_FILE), { recursive: true }); fs.appendFileSync(FEEDBACK_FILE, JSON.stringify(f) + '\n'); } catch { /* disk may be read-only */ }
+  const text = `TROY feedback (${f.type}${f.rating ? `, ${f.rating}/5` : ''})${f.page ? ` on ${f.page}` : ''}\n${f.message}${f.email ? `\nReply to: ${f.email}` : ''}`;
+  const jobs = [];
+  if (process.env.TROY_WEB3FORMS_KEY) jobs.push(fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ access_key: process.env.TROY_WEB3FORMS_KEY, subject: `TROY feedback: ${f.type}`, from_name: 'TROY site', email: f.email || undefined, message: text }) }));
+  if (process.env.TROY_FEEDBACK_WEBHOOK) jobs.push(fetch(process.env.TROY_FEEDBACK_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: text.slice(0, 1900), text }) }));
+  await Promise.allSettled(jobs);
+  json(res, 200, { ok: true });
 }
 
 // Search engines: robots.txt and sitemap.xml. Set TROY_URL=https://your-site.example for correct addresses.
 function seo(req, res, url) {
   const base = (process.env.TROY_URL || `http://${req.headers.host}`).replace(/\/+$/, '');
   if (url.pathname === '/robots.txt') { res.writeHead(200, { 'Content-Type': 'text/plain' }); return res.end(`User-agent: *\nAllow: /\nSitemap: ${base}/sitemap.xml\n`); }
-  const paths = ['/', '/explore', '/artists', '/timeline', '/today', '/about', '/privacy', '/contact', ...visible().map((p) => `/painting/${p.id}`)];
+  const paths = ['/', '/explore', '/artists', '/timeline', '/today', '/about', '/privacy', '/contact', '/feedback', ...visible().map((p) => `/painting/${p.id}`)];
   res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8' });
   res.end(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${paths.map((x) => `  <url><loc>${esc(base + x)}</loc></url>`).join('\n')}\n</urlset>\n`);
 }
@@ -143,6 +181,7 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');
     secure(res);
+    if (url.pathname === '/api/feedback' && req.method === 'POST') return await feedback(req, res);
     if (url.pathname.startsWith('/api/')) { if (limited(req, 'api', 600)) return json(res, 429, { error: 'Too many requests' }); return await api(req, res, url); }
     if (url.pathname === '/img') return await imgProxy(req, res, url);
     if (url.pathname === '/robots.txt' || url.pathname === '/sitemap.xml') return seo(req, res, url);
@@ -158,5 +197,6 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`TROY running at http://localhost:${PORT}  (${db.list().length} paintings in DB)`);
   if (!db.list().length) console.log('No paintings yet. Run: npm run import');
+  if (!process.env.TROY_WEB3FORMS_KEY && !process.env.TROY_FEEDBACK_WEBHOOK) console.log('Tip: set TROY_WEB3FORMS_KEY (free at web3forms.com) so feedback reaches your email.');
   if (!SUPPORT_EMAIL) console.log('Tip: set TROY_EMAIL=you@example.com so visitors can reach you (shown on the Contact page).');
 });

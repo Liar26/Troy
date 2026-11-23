@@ -1,0 +1,14 @@
+# Render blueprint: one free web service running TROY.
+services:
+  - type: web
+    name: troy
+    runtime: node
+    plan: free
+    buildCommand: echo "nothing to build"
+    startCommand: npm start
+    healthCheckPath: /api/status
+    envVars:
+      - key: TROY_EMAIL
+        sync: false      # Render asks you for this: your support email
+      - key: TROY_URL
+        sync: false      # Render asks you for this: your site address, e.g. https://troy.onrender.com
