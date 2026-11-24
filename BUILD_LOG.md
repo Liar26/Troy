@@ -100,3 +100,6 @@ Added Privacy & safety, Terms and Contact pages (footer links), a Report a probl
 
 ## Step 22: https everywhere in sitemap / canonical / Open Graph
 - One `baseUrl()` in server.js now feeds the sitemap, robots.txt, `og:url` and a new `<link rel="canonical">`. It uses TROY_URL, then Render's RENDER_EXTERNAL_URL, then the Host header, and always forces https except on localhost (the request protocol is never used, because Render's proxy reports http).
+
+## Step 23: Google Search Console verification file
+- Added `public/google1e0df8abfc805c5d.html` (content: `google-site-verification: google1e0df8abfc805c5d.html`, no trailing newline). Served by the normal static route. DO NOT REMOVE: Google rechecks it.
