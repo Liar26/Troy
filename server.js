@@ -51,8 +51,8 @@ function csp() {
   let hash = '';
   try { const m = /<script>([\s\S]*?)<\/script>/.exec(fs.readFileSync(path.join(PUBLIC, 'index.html'), 'utf8')); if (m) hash = ` 'sha256-${crypto.createHash('sha256').update(m[1]).digest('base64')}'`; } catch { /* ignore */ }
   return [
-    "default-src 'self'", `script-src 'self'${hash}`, "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", "font-src https://fonts.gstatic.com",
-    "img-src 'self' data: blob: https: http:", "connect-src 'self'", "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'",
+    "default-src 'self'", `script-src 'self' https://gc.zgo.at${hash}`, "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", "font-src https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https: http: https://troy.goatcounter.com", "connect-src 'self' https://troy.goatcounter.com", "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'",
   ].join('; ');
 }
 

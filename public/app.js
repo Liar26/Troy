@@ -355,7 +355,7 @@
         <p>Every painting, image and piece of information comes from the open-access programs of <a href="https://www.metmuseum.org/about-the-met/policies-and-documents/open-access" target="_blank" rel="noopener">The Metropolitan Museum of Art</a>, <a href="https://www.artic.edu/open-access" target="_blank" rel="noopener">The Art Institute of Chicago</a> and <a href="https://www.clevelandart.org/open-access" target="_blank" rel="noopener">The Cleveland Museum of Art</a>. Only works the museums mark as public domain (CC0) are shown. Images are loaded directly from the museums’ servers and are not stored here. Titles, artist details, dates, media, dimensions and credit lines are the museums’ own words; the only things TROY adds are grouped nationalities and regions, so you can browse them.</p>
         <p>A few famous paintings that none of these museums own (the Mona Lisa is in the Louvre, for example) come from <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a> (facts, CC0) and <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a> (public-domain images). They are marked with the museum that holds them.</p>
         <h2>Privacy</h2>
-        <p>No accounts, no ads, no tracking. Your saves, theme choice and daily streak live only in this browser.</p>
+        <p>No accounts, no ads, no cookies, only anonymous page-view counts. Your saves, theme choice and daily streak live only in this browser.</p>
         <h2>The collection</h2>
         <p id="about-status" class="muted">${state.paintings.length} paintings.</p>
       </div>`;
@@ -364,16 +364,18 @@
     /* ---------- privacy, terms, contact ---------- */
   function privacyView() {
     return `
-      <div class="container page-head"><h1>Privacy &amp; safety</h1><p>The short version: no accounts, no ads, no tracking, no cookies.</p></div>
+      <div class="container page-head"><h1>Privacy &amp; safety</h1><p>The short version: no accounts, no ads, no cookies, and only anonymous page-view counts.</p></div>
       <div class="container prose">
         <h2>What TROY collects</h2>
-        <p>Nothing about you is sent to us or stored on our server, except a message you choose to send through the <a href="/feedback" data-link>Feedback</a> form (your message, optional email, rating and the page you were on, used only to improve TROY or reply to you). There are no accounts, no sign-up, no analytics, no advertising and no cookies.</p>
+        <p>Nothing about you is sent to us or stored on our server, except a message you choose to send through the <a href="/feedback" data-link>Feedback</a> form (your message, optional email, rating and the page you were on, used only to improve TROY or reply to you). There are no accounts, no sign-up, no advertising and no cookies.</p>
+        <h2>Page-view counts</h2>
+        <p>TROY uses <a href="https://www.goatcounter.com" target="_blank" rel="noopener">GoatCounter</a>, a cookie-free, privacy-friendly counter, to see how many times each page and painting is viewed. It records only the page address, the referring site, a rough browser and screen size, and the country. It stores nothing on your device, creates no profile, and cannot follow you between sites. Nothing else is measured. If you block it, TROY works the same.</p>
         <h2>What stays in your browser</h2>
         <p>To remember your choices, TROY saves a few small items in your own browser (local storage): your saved paintings and collections, light or dark theme, your background choice, your daily-visit streak, and the colours it has read from paintings. They never leave your device unless you export them or share a link yourself. You can erase everything by clearing this site’s data in your browser settings.</p>
         <h2>Third parties, honestly</h2>
-        <p>The paintings are loaded directly from the museums’ own servers, and the text font (Inter) comes from Google Fonts. When your browser fetches those, the museum or Google can see your internet address, as with any website. TROY asks your browser not to tell them which page you were on. No third-party scripts, trackers or ads are allowed to run on this site.</p>
+        <p>The paintings are loaded directly from the museums’ own servers, and the text font (Inter) comes from Google Fonts. When your browser fetches those, the museum or Google can see your internet address, as with any website. TROY asks your browser not to tell them which page you were on. The only third-party script allowed on this site is the GoatCounter counter described above; no other scripts, trackers or ads can run.</p>
         <h2>Ads</h2>
-        <p>There are none, and TROY’s security rules block ad and tracking scripts from loading at all.</p>
+        <p>There are none, and TROY’s security rules block ad and tracking scripts from loading at all (apart from the anonymous GoatCounter counter described above).</p>
         <h2>Safety</h2>
         <ul>
           <li>Links to the museums open in a new tab and cannot control this page.</li>
@@ -675,9 +677,19 @@
     syncSaves();
   }
 
+  // GoatCounter (cookie-free page-view counts). count.js counts the first page load itself;
+  // every later in-app navigation (page, artist, painting) is counted here as its own view.
+  let counted = null;
+  function countView(path) {
+    if (counted === null) { counted = path; return; }
+    if (path === counted) return;
+    counted = path;
+    try { window.goatcounter?.count?.({ path, title: document.title, event: false }); } catch { /* analytics must never break the site */ }
+  }
   async function route() {
     await ready;
     const path = location.pathname.replace(/\/+$/, '') || '/';
+    countView(path);
     const m = /^\/painting\/(\d+)$/.exec(path);
     if (m) { if (state.bgPath === null) renderPage('/explore'); showModal(+m[1]); return; }
     hideModal();

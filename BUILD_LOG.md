@@ -103,3 +103,9 @@ Added Privacy & safety, Terms and Contact pages (footer links), a Report a probl
 
 ## Step 23: Google Search Console verification file
 - Added `public/google1e0df8abfc805c5d.html` (content: `google-site-verification: google1e0df8abfc805c5d.html`, no trailing newline). Served by the normal static route. DO NOT REMOVE: Google rechecks it.
+
+## Step 24: GoatCounter analytics (cookie-free)
+- index.html: GoatCounter script (https://troy.goatcounter.com/count, loaded from https://gc.zgo.at/count.js) before `</body>`. It counts the first load itself.
+- app.js `countView()` calls `window.goatcounter.count({path})` on every later route change (pages, artists, each painting, next/previous), skipping repeats of the same path.
+- CSP: `script-src` + https://gc.zgo.at; `connect-src` and `img-src` + https://troy.goatcounter.com. (img-src already allowed https: for museum images, so it cannot be narrowed further.)
+- Privacy and About text updated: no accounts, no ads, no cookies, only anonymous page-view counts.
