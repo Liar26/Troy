@@ -109,3 +109,6 @@ Added Privacy & safety, Terms and Contact pages (footer links), a Report a probl
 - app.js `countView()` calls `window.goatcounter.count({path})` on every later route change (pages, artists, each painting, next/previous), skipping repeats of the same path.
 - CSP: `script-src` + https://gc.zgo.at; `connect-src` and `img-src` + https://troy.goatcounter.com. (img-src already allowed https: for museum images, so it cannot be narrowed further.)
 - Privacy and About text updated: no accounts, no ads, no cookies, only anonymous page-view counts.
+
+## Step 25: Pinterest domain verification
+- Added `<meta name="p:domain_verify" content="d55fec45ee7e27e1a71dc59c212404f1"/>` in the `<head>` of public/index.html (raw HTML, not JavaScript). DO NOT REMOVE: Pinterest rechecks it. The server only replaces the `<title>` line, so the tag stays on every page.
