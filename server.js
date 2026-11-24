@@ -86,7 +86,16 @@ async function api(req, res, url) {
   return json(res, 404, { error: 'Painting not found' });
 }
 
-function baseUrl(req) { return (process.env.TROY_URL || `http://${req.headers.host}`).replace(/\/+$/, ''); }
+// Public address used in the sitemap, canonical and Open Graph tags. Always https for real sites
+// (Render's proxy makes the request look like http, so the request protocol is never used).
+// Order: TROY_URL, then Render's own RENDER_EXTERNAL_URL, then the Host header (http only for localhost).
+function baseUrl(req) {
+  let b = process.env.TROY_URL || process.env.RENDER_EXTERNAL_URL || '';
+  if (!b) { const h = String(req.headers.host || 'localhost'); b = `${/^(localhost|127\.|\[::1\])/.test(h) ? 'http' : 'https'}://${h}`; }
+  if (!/^https?:\/\//.test(b)) b = 'https://' + b;
+  if (!/^http:\/\/(localhost|127\.)/.test(b)) b = b.replace(/^http:\/\//, 'https://');
+  return b.replace(/\/+$/, '');
+}
 function servePage(req, res, url, code = 200) {
   let html = fs.readFileSync(path.join(PUBLIC, 'index.html'), 'utf8');
   const base = baseUrl(req);
@@ -103,6 +112,7 @@ function servePage(req, res, url, code = 200) {
 <meta property="og:description" content="${esc(desc)}">
 <meta property="og:image" content="${esc(image)}">
 <meta property="og:url" content="${esc(base + url.pathname)}">
+<link rel="canonical" href="${esc(base + url.pathname)}">
 <meta name="twitter:card" content="${p ? 'summary_large_image' : 'summary'}">`;
   html = html.replace('<title>TROY</title>', tags);
   res.writeHead(code, { 'Content-Type': MIME['.html'], 'Content-Security-Policy': csp() });
@@ -142,7 +152,7 @@ async function feedback(req, res) {
 
 // Search engines: robots.txt and sitemap.xml. Set TROY_URL=https://your-site.example for correct addresses.
 function seo(req, res, url) {
-  const base = (process.env.TROY_URL || `http://${req.headers.host}`).replace(/\/+$/, '');
+  const base = baseUrl(req);
   if (url.pathname === '/robots.txt') { res.writeHead(200, { 'Content-Type': 'text/plain' }); return res.end(`User-agent: *\nAllow: /\nSitemap: ${base}/sitemap.xml\n`); }
   const paths = ['/', '/explore', '/artists', '/timeline', '/today', '/about', '/privacy', '/contact', '/feedback', ...visible().map((p) => `/painting/${p.id}`)];
   res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8' });

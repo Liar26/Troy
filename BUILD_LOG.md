@@ -97,3 +97,6 @@ Added Privacy & safety, Terms and Contact pages (footer links), a Report a probl
 - Share: header icon, footer "Share TROY", and a Share button on every painting. Phones open the native share menu; desktop gets a sheet (copy link, WhatsApp, Telegram, X, Facebook, Reddit, Pinterest, Email).
 - Link previews: every page now has Open Graph/Twitter tags (paintings use their own image) so shared links look good.
 - Feedback: /feedback page (stars, type, message, optional email, hidden spam trap). POST /api/feedback is rate-limited (5/min), saved to data/feedback.jsonl and forwarded to TROY_WEB3FORMS_KEY (email) and/or TROY_FEEDBACK_WEBHOOK (Discord/Slack). Privacy page updated.
+
+## Step 22: https everywhere in sitemap / canonical / Open Graph
+- One `baseUrl()` in server.js now feeds the sitemap, robots.txt, `og:url` and a new `<link rel="canonical">`. It uses TROY_URL, then Render's RENDER_EXTERNAL_URL, then the Host header, and always forces https except on localhost (the request protocol is never used, because Render's proxy reports http).
